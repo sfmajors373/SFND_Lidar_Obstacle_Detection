@@ -4,6 +4,7 @@
 #include "../../render/render.h"
 #include <unordered_set>
 #include "../../processPointClouds.h"
+#include <math.h>
 // using templates for processPointClouds so also include .cpp to help linker
 #include "../../processPointClouds.cpp"
 
@@ -67,13 +68,56 @@ std::unordered_set<int> Ransac(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, int ma
 	srand(time(NULL));
 	
 	// TODO: Fill in this function
+	int maxInliers = 0;
+	int cloudSize = cloud->points.size();
 
 	// For max iterations 
+	for (int i = 0; i < maxIterations; i++)
+	{
+		int currentInliers = 0;
+		// Randomly sample subset
+		int index_1 = rand() % cloudSize;
+		int index_2 = rand() % cloudSize;
 
-	// Randomly sample subset and fit line
+		if (index_1 == index_2)
+		{
+			index_1 = rand() % cloudSize;
+		}
+		
+		pcl::PointXYZ point_1 = cloud->points[index_1];
+		pcl::PointXYZ point_2 = cloud->points[index_2];
 
-	// Measure distance between every point and fitted line
-	// If distance is smaller than threshold count it as inlier
+		// Fit line
+		// Ax + By + C = 0
+		float line_A = point_1.y - point_2.y;
+		float line_B = point_2.x - point_1.x;
+		float line_C = (point_1.x * point_2.y) - (point_2.x * point_1.y);
+		
+
+		// Measure distance between every point and fitted line
+		for (int j = 0; j < cloudSize; j++)
+		{
+			// Calculate distance
+			float dist = (std::abs((line_A * cloud->points[j].x) +
+									line_B * cloud->points[j].y +
+									line_C)) / 
+									(sqrt(line_A * line_A + line_B * line_B));
+			// If distance is smaller than threshold count it as inlier
+			if (dist < distanceTol)
+			{
+				currentInliers++;
+			}
+		}
+		// If current inliers more than maxInliers, update inliersResult
+		if (currentInliers > maxInliers)
+		{
+			std::unordered_set<int> inliersCurrent;
+			inliersCurrent.insert(index_1);
+			inliersCurrent.insert(index_2);
+			inliersResult.swap(inliersCurrent);
+			maxInliers = currentInliers;
+		}
+	}
 
 	// Return indicies of inliers from fitted line with most inliers
 	
