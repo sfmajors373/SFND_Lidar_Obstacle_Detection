@@ -69,7 +69,7 @@ std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT
     std::cout << "Entering SegmentPlane" << std::endl;
     // Time segmentation process
     auto startTime = std::chrono::steady_clock::now();
-	pcl::PointIndices::Ptr inliers;
+	pcl::PointIndices::Ptr inliers {new pcl::PointIndices};
     pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients());
     pcl::SACSegmentation<PointT> seg;
     // TODO:: Fill in this function to find inliers for the cloud.
