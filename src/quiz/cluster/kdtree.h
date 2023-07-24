@@ -62,32 +62,35 @@ struct KdTree
 		return ids;
 	}
 	
-	int searchHelper(std::vector<float> target, float distanceTol, Node *&currentNode, int depth, std::vector<int> ids)
+	void searchHelper(std::vector<float> target, float distanceTol, Node *&currentNode, int depth, std::vector<int>& ids)
 	{
-		float x1 = target[0];
-		float y1 = target[1];
+		if (currentNode != NULL)
+		{
+			float x1 = target.at(0);
+			float y1 = target.at(1);
 
-		float x2 = currentNode->point[0];
-		float y2 = currentNode->point[1];
+			float x2 = currentNode->point.at(0);
+			float y2 = currentNode->point.at(1);
 
-		int compNum = depth % 2;
+			int compNum = depth % 2;
 
-		if ((x2 >= (x1 - distanceTol) && x2 <= (x1 + distanceTol)) &&
+			if ((x2 >= (x1 - distanceTol) && x2 <= (x1 + distanceTol)) &&
 			(y2 >= (y1 - distanceTol) && y2 <= (y1 + distanceTol)))
-		{
-			float dist = sqrt((x2-x1)*(x2-x1) - (y2-y1)*(y2-y1));
-			if (dist < distanceTol)
 			{
-				ids.push_back(currentNode->id);
+				float dist = sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
+				if (dist <= distanceTol)
+				{
+					ids.push_back(currentNode->id);
+				}
 			}
-		}
-		else if (target[compNum] - distanceTol < currentNode->point[compNum])
-		{
-			searchHelper(target, distanceTol, currentNode->left, (compNum+1), ids);
-		}
-		else if (target[compNum] - distanceTol < currentNode->point[compNum])
-		{
-			searchHelper(target, distanceTol, currentNode->right, (compNum+1), ids);
+			if ((target[compNum] - distanceTol) < currentNode->point[compNum])
+			{
+				searchHelper(target, distanceTol, currentNode->left, (compNum+1), ids);
+			}
+			if ((target[compNum] - distanceTol) < currentNode->point[compNum])
+			{
+				searchHelper(target, distanceTol, currentNode->right, (compNum+1), ids);
+			}
 		}
 	}
 };
