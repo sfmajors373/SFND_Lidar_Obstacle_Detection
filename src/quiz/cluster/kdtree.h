@@ -58,49 +58,50 @@ struct KdTree
 	std::vector<int> search(std::vector<float> target, float distanceTol)
 	{
 		std::vector<int> ids;
-		std::cout << "\n Target: " << target.at(0) << ", " << target.at(1) << std::endl;
+		// std::cout << "\n Target: " << target.at(0) << ", " << target.at(1) << std::endl;
 		searchHelper(target, distanceTol, root, 0, ids);
 		return ids;
 	}
 	
-	void searchHelper(std::vector<float> target, float distanceTol, Node *&currentNode, int depth, std::vector<int>& ids)
+	void searchHelper(std::vector<float> target, float distanceTol, Node *currentNode, int depth, std::vector<int>& ids)
 	{
 		// std::cout << "\n Target: " << target.at(0) << ", " << target.at(1) << std::endl;
 		// std::cout << "Point to check: " << currentNode->point.at(0) << ", " << currentNode->point.at(1) << std::endl;
 
- 		if (currentNode != NULL)
+ 		if (currentNode == nullptr) return;
+		// std::cout << "\n Target: " << target.at(0) << ", " << target.at(1) << std::endl;
+		// std::cout << "Point to check: " << currentNode->point.at(0) << ", " << currentNode->point.at(1) << std::endl;
+
+		float x1 = target.at(0);
+		float y1 = target.at(1);
+
+		float x2 = currentNode->point.at(0);
+		float y2 = currentNode->point.at(1);
+
+		int compNum = depth % 2;
+
+		if ((x2 >= (x1 - distanceTol) && x2 <= (x1 + distanceTol)) &&
+		(y2 >= (y1 - distanceTol) && y2 <= (y1 + distanceTol)))
 		{
-			std::cout << "\n Target: " << target.at(0) << ", " << target.at(1) << std::endl;
-			std::cout << "Point to check: " << currentNode->point.at(0) << ", " << currentNode->point.at(1) << std::endl;
-
-			float x1 = target.at(0);
-			float y1 = target.at(1);
-
-			float x2 = currentNode->point.at(0);
-			float y2 = currentNode->point.at(1);
-
-			int compNum = depth % 2;
-
-			if ((x2 >= (x1 - distanceTol) && x2 <= (x1 + distanceTol)) &&
-			(y2 >= (y1 - distanceTol) && y2 <= (y1 + distanceTol)))
+			// std::cout << "In box" << std::endl;
+			float dist = sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
+			if (dist <= distanceTol)
 			{
-				std::cout << "In box" << std::endl;
-				float dist = sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
-				if (dist <= distanceTol)
-				{
-					std::cout << "In tolerance" << std::endl;
-					ids.push_back(currentNode->id);
-				}
-			}
-			if ((target[compNum] - distanceTol) < currentNode->point[compNum])
-			{
-				searchHelper(target, distanceTol, currentNode->left, (compNum+1), ids);
-			}
-			if ((target[compNum] - distanceTol) < currentNode->point[compNum])
-			{
-				searchHelper(target, distanceTol, currentNode->right, (compNum+1), ids);
+				// std::cout << "In tolerance" << std::endl;
+				ids.push_back(currentNode->id);
 			}
 		}
+		if ((target[compNum] - distanceTol) < currentNode->point[compNum])
+		{
+			// std::cout << "To the left" << std::endl;
+			searchHelper(target, distanceTol, currentNode->left, (compNum+1), ids);
+		}
+		if ((target[compNum] + distanceTol) > currentNode->point[compNum])
+		{
+			// std::cout << "To the right" << std::endl;
+			searchHelper(target, distanceTol, currentNode->right, (compNum+1), ids);
+		}
+		// TODO: figure out what to do if it equals
 	}
 };
 
