@@ -58,14 +58,21 @@ struct KdTree
 	std::vector<int> search(std::vector<float> target, float distanceTol)
 	{
 		std::vector<int> ids;
+		std::cout << "\n Target: " << target.at(0) << ", " << target.at(1) << std::endl;
 		searchHelper(target, distanceTol, root, 0, ids);
 		return ids;
 	}
 	
 	void searchHelper(std::vector<float> target, float distanceTol, Node *&currentNode, int depth, std::vector<int>& ids)
 	{
-		if (currentNode != NULL)
+		// std::cout << "\n Target: " << target.at(0) << ", " << target.at(1) << std::endl;
+		// std::cout << "Point to check: " << currentNode->point.at(0) << ", " << currentNode->point.at(1) << std::endl;
+
+ 		if (currentNode != NULL)
 		{
+			std::cout << "\n Target: " << target.at(0) << ", " << target.at(1) << std::endl;
+			std::cout << "Point to check: " << currentNode->point.at(0) << ", " << currentNode->point.at(1) << std::endl;
+
 			float x1 = target.at(0);
 			float y1 = target.at(1);
 
@@ -77,9 +84,11 @@ struct KdTree
 			if ((x2 >= (x1 - distanceTol) && x2 <= (x1 + distanceTol)) &&
 			(y2 >= (y1 - distanceTol) && y2 <= (y1 + distanceTol)))
 			{
+				std::cout << "In box" << std::endl;
 				float dist = sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
 				if (dist <= distanceTol)
 				{
+					std::cout << "In tolerance" << std::endl;
 					ids.push_back(currentNode->id);
 				}
 			}
