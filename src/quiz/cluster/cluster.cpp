@@ -159,7 +159,7 @@ int main ()
       std::cout << index << ",";
   	std::cout << std::endl;
 	
-	std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
+	// std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
 
   	// Time segmentation process
   	auto startTime = std::chrono::steady_clock::now();
