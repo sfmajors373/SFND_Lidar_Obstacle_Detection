@@ -7,7 +7,7 @@
 // Structure to represent node of kd tree
 struct Node
 {
-	std::vector<float> point;
+	pcl::PointXYZI point;
 	int id;
 	Node* left;
 	Node* right;
@@ -25,7 +25,7 @@ struct KdTree
 	: root(NULL)
 	{}
 
-	void insertHelper(Node *&node, uint depth, std::vector<float> point, int id)
+	void insertHelper(Node *&node, uint depth, pcl::PointXYZI point, int id)
 	{
 		if (node == NULL)
 		{
@@ -47,7 +47,7 @@ struct KdTree
 	}
 
 
-	void insert(std::vector<float> point, int id)
+	void insert(pcl::PointXYZI point, int id)
 	{
 		// TODO: Fill in this function to insert a new point into the tree
 		// the function should create a new node and place correctly with in the root 
@@ -74,17 +74,20 @@ struct KdTree
 
 		float x1 = target.at(0);
 		float y1 = target.at(1);
+		float z1 = target.at(2);
 
 		float x2 = currentNode->point.at(0);
 		float y2 = currentNode->point.at(1);
+		float z2 = currentNode->point.at(2);
 
-		int compNum = depth % 2;
+		int compNum = depth % target.size();
 
 		if ((x2 >= (x1 - distanceTol) && x2 <= (x1 + distanceTol)) &&
-		(y2 >= (y1 - distanceTol) && y2 <= (y1 + distanceTol)))
+		(y2 >= (y1 - distanceTol) && y2 <= (y1 + distanceTol)) &&
+		(z2 >= (z1 - distanceTol) && z2 <= (z1 + distanceTol)))
 		{
 			// std::cout << "In box" << std::endl;
-			float dist = sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
+			float dist = sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1) + (z2-z1)*(z2-z1));
 			if (dist <= distanceTol)
 			{
 				// std::cout << "In tolerance" << std::endl;
@@ -94,12 +97,12 @@ struct KdTree
 		if ((target[compNum] - distanceTol) < currentNode->point[compNum])
 		{
 			// std::cout << "To the left" << std::endl;
-			searchHelper(target, distanceTol, currentNode->left, (compNum+1), ids);
+			searchHelper(target, distanceTol, currentNode->left, (depth+1), ids);
 		}
 		if ((target[compNum] + distanceTol) > currentNode->point[compNum])
 		{
 			// std::cout << "To the right" << std::endl;
-			searchHelper(target, distanceTol, currentNode->right, (compNum+1), ids);
+			searchHelper(target, distanceTol, currentNode->right, (depth+1), ids);
 		}
 		// TODO: figure out what to do if it equals
 	}

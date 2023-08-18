@@ -7,14 +7,14 @@
 #include <math.h>
 
 
-std::vector<int> proximity(int i, std::vector<std::vector<float>> points, std::vector<int>& cluster,std::vector<bool>& processed_points, KdTree* tree, float distanceTol)
+std::vector<int> proximity(int i, typename pcl::PointCloud<pcl::PointXYZI>::Ptr cloud, std::vector<int>& cluster,std::vector<bool>& processed_points, KdTree* tree, float distanceTol)
 {
 	// mark point as processed
 	processed_points.at(i) = true;
 	// add point to cluster
 	cluster.push_back(i);
 	// call kdtree on the point
-	std::vector<int> nearby_points = tree->search(points.at(i), distanceTol);
+	std::vector<int> nearby_points = tree->search(cloud->points.at(i), distanceTol);
 	// iterate through each nearby point
 	for (int id : nearby_points)
 	{
@@ -22,25 +22,26 @@ std::vector<int> proximity(int i, std::vector<std::vector<float>> points, std::v
 		if (!processed_points.at(id))
 		{
 			// call proximity on it
-			proximity(id, points, cluster, processed_points, tree, distanceTol);
+			proximity(id, cloud, cluster, processed_points, tree, distanceTol);
 		}
 	}
 	return cluster;
 }
 
 
-std::vector<std::vector<int>> euclideanCluster(const std::vector<std::vector<float>>& points, KdTree* tree, float distanceTol)
+std::vector<std::vector<int>> euclideanCluster(typename pcl::PointCloud<pcl::PointXYZI>::Ptr cloud, KdTree* tree, float distanceTol,
+int minSize, int maxSize)
 {
 
 	// TODO: Fill out this function to return list of indices for each cluster
 
 	std::vector<std::vector<int>> clusters;
-	std::vector<bool> processed_points(points.size(), false);
+	std::vector<bool> processed_points(cloud->points.size(), false);
 
 	// iterate through each point
 	// if point not processed
 	int i = 0;
-	while (i < points.size())
+	while (i < cloud->points.size())
 	{
 		if (processed_points.at(i))
 		{
@@ -49,8 +50,11 @@ std::vector<std::vector<int>> euclideanCluster(const std::vector<std::vector<flo
 		}
 
 		std::vector<int> cluster;
-		proximity(i, points, cluster, processed_points, tree, distanceTol);
-		clusters.push_back(cluster);
+		proximity(i, cloud, cluster, processed_points, tree, distanceTol);
+		if ((cluster.size() >= minSize) && (cluster.size() <= maxSize))
+		{
+			clusters.push_back(cluster);
+		}
 		i++;
 	}
  
@@ -122,5 +126,68 @@ std::unordered_set<int> Ransac(typename pcl::PointCloud<pcl::PointXYZI>::Ptr clo
 	}
 
 	// Return indicies of inliers from fitted line with most inliers
+	return inliersResult;
+}
+
+std::unordered_set<int> Ransac2(typename pcl::PointCloud<pcl::PointXYZI>::Ptr cloud, int maxIterations, float distanceTol)
+{
+	std::unordered_set<int> inliersResult;
+
+	pcl::PointXYZI point1;
+	pcl::PointXYZI point2;
+	pcl::PointXYZI point3;
+
+	int idx1, idx2, idx3;
+
+	float a, b , c, d, dis, len;
+
+	for (int it = 0; it < maxIterations; it++)
+	{
+		std::unordered_set<int> tempIndices;
+
+		while (tempIndices.size() < 3)
+		{
+			tempIndices.insert((rand() % cloud->points.size()));
+		}
+
+		auto iter = tempIndices.begin();
+
+		idx1 = *iter;
+		++iter;
+		idx2 = *iter;
+		++iter;
+		idx3 = *iter;
+
+		point1 = cloud->points[idx1];
+		point2 = cloud->points[idx2];
+		point3 = cloud->points[idx3];
+
+		a = (((point2.y - point1.y) * (point3.z - point1.z)) - ((point2.z - point1.z) * (point3.y - point1.y)));
+        b = (((point2.z - point1.z) * (point3.x - point1.x)) - ((point2.x - point1.x) * (point3.z - point1.z)));
+        c = (((point2.x - point1.x) * (point3.y - point1.y)) - ((point2.y - point1.y) * (point3.x - point1.x)));
+        d = -(a * point1.x + b * point1.y + c * point1.z);
+        len = sqrt(a * a + b * b + c * c);
+
+		for (int pt_cnt = 0; pt_cnt < cloud->points.size(); pt_cnt++)
+        {
+            if (pt_cnt != idx1 || pt_cnt != idx2 || pt_cnt != idx3)
+            {
+                dis = (fabs(a * cloud->points[pt_cnt].x + b * cloud->points[pt_cnt].y + c * cloud->points[pt_cnt].z + d) / len);
+
+                // If distance is smaller than threshold count it as inlier
+                if (dis <= distanceTol)
+                {
+                    tempIndices.insert(pt_cnt);
+                }
+            }
+        }
+
+		if (tempIndices.size() > inliersResult.size())
+        {
+            inliersResult.clear();
+            inliersResult = tempIndices;
+        }
+	}
+
 	return inliersResult;
 }

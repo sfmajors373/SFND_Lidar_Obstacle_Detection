@@ -113,7 +113,7 @@ std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT
 
 	std::unordered_set<int>  inliers;
 
-    inliers = Ransac(cloud, maxIterations, distanceThreshold);
+    inliers = Ransac2(cloud, maxIterations, distanceThreshold);
 
     if (inliers.size() == 0)
     {
@@ -122,24 +122,7 @@ std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT
 
     std::cout << '\n' << "About to SeparateClouds" << '\n' << std::endl;
 
-    // std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT>::Ptr> segResult = SeparateClouds(inliers,cloud);
-    typename pcl::PointCloud<PointT>::Ptr cloudInliers(new pcl::POintCloud<PointT>());
-    typename pcl::PointCloud<PointT>::Ptr cloudOutliers(new pcl::PointCloud<PointT>());
-
-    for (int i = 0; i < cloud->points.size(); i++)
-    {
-        PointT point = cloud->points[i];
-        if (inliers.count(i))
-        {
-            cloudInliers->points.push_back(point);
-        }
-        else
-        {
-            cloudOutliers->points.push_back(point);
-        }
-    }
-
-    std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT>::Ptr> segResult(cloudOutliers, cloudInliers);
+    std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT>::Ptr> segResult = SeparateClouds(inliers,cloud);
 
     auto endTime = std::chrono::steady_clock::now();
     auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
@@ -162,23 +145,23 @@ std::vector<typename pcl::PointCloud<PointT>::Ptr> ProcessPointClouds<PointT>::C
 
     // TODO:: Fill in the function to perform euclidean clustering to group detected obstacles
 
-    typename pcl::search::KdTree<PointT>::Ptr tree (new pcl::search::KdTree<PointT>);
-    tree->setInputCloud(cloud);
+    KdTree* tree (new KdTree);
+    
+    for (int i = 0; i < cloud->points.size(); i++)
+    {
+        tree->insert(cloud->points.at(i), i);
+    }
 
-    std::vector<pcl::PointIndices> clusterIndices;
-    pcl::EuclideanClusterExtraction<PointT> ec;
-    ec.setClusterTolerance(clusterTolerance);
-    ec.setMinClusterSize(minSize);
-    ec.setMaxClusterSize(maxSize);
-    ec.setSearchMethod(tree);
-    ec.setInputCloud(cloud);
-    ec.extract(clusterIndices);
+    std::vector<std::vector<int>> clusterIndices;
 
-    for(pcl::PointIndices getIndices: clusterIndices)
+    clusterIndices = euclideanCluster(cloud, tree, clusterTolerance, minSize, maxSize);
+
+
+    for(std::vector<int> getIndices: clusterIndices)
     {
         typename pcl::PointCloud<PointT>::Ptr cloudCluster (new pcl::PointCloud<PointT>);
 
-        for (int index : getIndices.indices)
+        for (int index : getIndices)
             cloudCluster->points.push_back(cloud->points[index]);
 
         cloudCluster->width = cloudCluster->points.size();
