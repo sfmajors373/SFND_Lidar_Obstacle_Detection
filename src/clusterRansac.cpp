@@ -61,10 +61,8 @@ int minSize, int maxSize)
 	return clusters;
 }
 
-std::unordered_set<int> Ransac(
-	typename pcl::PointCloud<pcl::PointXYZI>::Ptr cloud,
-	 int maxIterations,
-	 float distanceTol)
+std::unordered_set<int> Ransac(typename pcl::PointCloud<pcl::PointXYZI>::Ptr cloud,
+	 int maxIterations, float distanceTol)
 {
 	std::unordered_set<int> inliersResult;
 	
@@ -72,9 +70,7 @@ std::unordered_set<int> Ransac(
 
 	// For max iterations 
 	for (int i = 0; i < maxIterations; i++)
-	{
-		// int currentInliers = 0;
-		
+	{	
 		// Randomly sample subset
 		std::unordered_set<int> inliers;
 
@@ -107,7 +103,6 @@ std::unordered_set<int> Ransac(
 		float line_C = ((x2 - x1)*(y3 - y1)) - ((y2 - y1)*(x3 - x1));
 		float line_D = -((line_A * x1) + (line_B * y1) + (line_C * z1));
 		float len = (sqrt(line_A * line_A + line_B * line_B + line_C * line_C));
-		// std::cout << "a: " << line_A << "B: " << line_B << "C: " << line_C << "D: " << line_D << std::endl;
 		
 
 		// Measure distance between every point and fitted line
@@ -136,71 +131,5 @@ std::unordered_set<int> Ransac(
 	}
 
 	// Return indicies of inliers from fitted line with most inliers
-	return inliersResult;
-}
-
-std::unordered_set<int> Ransac2(typename pcl::PointCloud<pcl::PointXYZI>::Ptr cloud, int maxIterations, float distanceTol)
-{
-	std::unordered_set<int> inliersResult;
-	srand(0);
-
-	pcl::PointXYZI point1;
-	pcl::PointXYZI point2;
-	pcl::PointXYZI point3;
-
-	int idx1, idx2, idx3;
-
-	float a, b , c, d, dis, len;
-
-	for (int it = 0; it < maxIterations; it++)
-	{
-		std::unordered_set<int> tempIndices;
-
-		while (tempIndices.size() < 3)
-		{
-			tempIndices.insert((rand() % cloud->points.size()));
-		}
-
-		auto iter = tempIndices.begin();
-
-		idx1 = *iter;
-		++iter;
-		idx2 = *iter;
-		++iter;
-		idx3 = *iter;
-
-		point1 = cloud->points[idx1];
-		point2 = cloud->points[idx2];
-		point3 = cloud->points[idx3];
-
-		a = (((point2.y - point1.y) * (point3.z - point1.z)) - ((point2.z - point1.z) * (point3.y - point1.y)));
-        b = (((point2.z - point1.z) * (point3.x - point1.x)) - ((point2.x - point1.x) * (point3.z - point1.z)));
-        c = (((point2.x - point1.x) * (point3.y - point1.y)) - ((point2.y - point1.y) * (point3.x - point1.x)));
-        d = -(a * point1.x + b * point1.y + c * point1.z);
-        len = sqrt(a * a + b * b + c * c);
-
-		std::cout << "A: " << a << "B: " << b << "C: " << c << "D " << d << std::endl;
-
-		for (int pt_cnt = 0; pt_cnt < cloud->points.size(); pt_cnt++)
-        {
-            if (pt_cnt != idx1 || pt_cnt != idx2 || pt_cnt != idx3)
-            {
-                dis = (fabs(a * cloud->points[pt_cnt].x + b * cloud->points[pt_cnt].y + c * cloud->points[pt_cnt].z + d) / len);
-
-                // If distance is smaller than threshold count it as inlier
-                if (dis <= distanceTol)
-                {
-                    tempIndices.insert(pt_cnt);
-                }
-            }
-        }
-
-		if (tempIndices.size() > inliersResult.size())
-        {
-            inliersResult.clear();
-            inliersResult = tempIndices;
-        }
-	}
-
 	return inliersResult;
 }

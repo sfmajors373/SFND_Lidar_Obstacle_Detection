@@ -15,7 +15,6 @@
 #include "kdtree.h"
 
 std::unordered_set<int> Ransac(typename pcl::PointCloud<pcl::PointXYZI>::Ptr cloud, int maxIterations, float distanceTol);
-std::unordered_set<int> Ransac2(typename pcl::PointCloud<pcl::PointXYZI>::Ptr cloud, int maxIterations, float distanceTol);
 std::vector<int> proximity(int i, typename pcl::PointCloud<pcl::PointXYZI>::Ptr cloud, std::vector<int>& cluster,std::vector<bool>& processed_points, KdTree* tree, float distanceTol);
 std::vector<std::vector<int>> euclideanCluster(typename pcl::PointCloud<pcl::PointXYZI>::Ptr points, KdTree* tree, float distanceTol, int minSize, int maxSize);
 
