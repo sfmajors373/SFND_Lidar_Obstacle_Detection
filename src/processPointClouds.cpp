@@ -113,7 +113,10 @@ std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT
 
 	std::unordered_set<int>  inliers;
 
-    inliers = Ransac2(cloud, maxIterations, distanceThreshold);
+    inliers = Ransac(cloud, maxIterations, distanceThreshold);
+    // std::cout << "Inliers: " << inliers.size() << std::endl;
+    // std::unordered_set<int> inliers2 = Ransac2(cloud, maxIterations, distanceThreshold);
+    // std::cout << "Inliers2: " << inliers2.size() << std::endl;
 
     if (inliers.size() == 0)
     {
